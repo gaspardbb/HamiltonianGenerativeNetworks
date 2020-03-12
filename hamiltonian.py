@@ -3,11 +3,11 @@ from typing import Tuple, Callable
 import tensorflow as tf
 import numpy as np
 
-from tensorflow.keras import Model, Sequential
-from tensorflow.keras.layers import Dense, Input
+from tensorflow.keras import Model
+from tensorflow.keras.layers import Input
 from tensorflow import Tensor, Variable
 
-from utils import _isin
+from utils import _isin, _mlp_models
 
 
 class Hamiltonian:
@@ -23,8 +23,8 @@ class Hamiltonian:
         kinetic, potential: Models for the energies. If a tuple istructuress passed, will be a MLP with the associated number
         of layers and units.
         """
-        self.kinetic = _hamiltonian_models(dim, kinetic, name="Kinetic")
-        self.potential = _hamiltonian_models(dim, potential, name="Potential")
+        self.kinetic = _mlp_models(dim, kinetic, "softplus", name="Kinetic")
+        self.potential = _mlp_models(dim, potential, "softplus", name="Potential")
         self.dim = dim
 
     def __call__(self, q: Tensor, p: Tensor, *args, **kwargs) -> Tensor:
@@ -135,17 +135,6 @@ def _euler_integration(q: Tensor, p: Tensor, n_steps: int, eps: float, forward: 
         p = p - eps * grad_func_q(q)
 
     return q, p
-
-
-def _hamiltonian_models(dim, net: Tuple[int] or Model, name: str = ""):
-    if isinstance(net, Model):
-        assert net.input_shape[1:] == (dim,), ("Your custom net does not have the right shape!"
-                                               f"Got {net.input_shape}, expected {(dim,)}")
-        return net
-
-    return Sequential(([Dense(net[0], activation='softplus', input_shape=(dim,))]
-                       + [Dense(n, activation='softplus') for n in net[1:]]
-                       + [Dense(1, activation=None)]), name=name)
 
 
 def test_integration(method='leapfrog'):
