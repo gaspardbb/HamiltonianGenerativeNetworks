@@ -103,7 +103,6 @@ def _leapfrog_integration(q: Tensor, p: Tensor, n_steps: int, eps: float, forwar
                           grad_func_q: Callable[[Tensor], Tensor],
                           grad_func_p: Callable[[Tensor], Tensor]):
     print(f"Tracing with {q}, {p}, {grad_func_q}, {grad_func_p}")
-    # TODO: check this function!
     if not forward:
         eps = - eps
 
