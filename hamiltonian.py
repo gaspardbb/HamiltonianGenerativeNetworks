@@ -38,6 +38,11 @@ class Hamiltonian:
         """
         return self.potential(q) + self.kinetic(p)
 
+    @property
+    def trainable_variables(self):
+        return self.kinetic.trainable_variables + self.potential.trainable_variables
+
+
     # Really important decorator here! Otherwise, this is a python object. Then, when passed to leapfrog integration,
     # it will make retracing necessary at each step.
     @tf.function
@@ -58,7 +63,6 @@ class Hamiltonian:
             kinetic = self.kinetic(p)
         return t.gradient(kinetic, p)
 
-    # @tf.function
     def integrate(self, q: Variable, p: Variable, n_steps: int, eps: float, forward, method="leapfrog"):
         """
         Perform integration of a state, according to Hamiltonian dynamics.
@@ -84,15 +88,19 @@ class Hamiltonian:
             Tuple of new state: position, momentum.
         """
         _isin(method, Hamiltonian.integrate_methods)
+        # Again, casting hyperparameters to tf.Tensor is crucial here. Otherwise, leapfrog will retrace at each
+        # change of arguments.
+        # Also necessary to cast for avoiding compatibility issues; even if float64 by default with the tf.constant(...)
+        # constructor
+        eps = tf.constant(eps, dtype='float32')
+
         params = dict(q=q, p=p,
                       n_steps=tf.constant(n_steps),
-                      eps=tf.constant(eps),
+                      eps=eps,
                       forward=tf.constant(forward),
                       grad_func_q=self.grad_potential,
                       grad_func_p=self.grad_kinetic)
         if method == "leapfrog":
-            # Again, casting hyperparameters to tf.Tensor is crucial here. Otherwise, leapfrog will retrace at each
-            # change of arguments.
             return _leapfrog_integration(**params)
         elif method == "euler":
             return _euler_integration(**params)
@@ -102,6 +110,7 @@ class Hamiltonian:
 def _leapfrog_integration(q: Tensor, p: Tensor, n_steps: int, eps: float, forward: bool,
                           grad_func_q: Callable[[Tensor], Tensor],
                           grad_func_p: Callable[[Tensor], Tensor]):
+    # TODO: for now, retrace at each change of batch_size for (q,p)...
     print(f"Tracing with {q}, {p}, {grad_func_q}, {grad_func_p}")
     if not forward:
         eps = - eps

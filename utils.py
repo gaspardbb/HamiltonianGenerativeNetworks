@@ -15,6 +15,6 @@ def _mlp_models(dim, net: Tuple[int] or Model, activation: str, name: str = ""):
                                                f"Got {net.input_shape}, expected {(dim,)}")
         return net
 
-    return Sequential(([Dense(net[0], activation=activation, input_shape=(dim,))]
-                       + [Dense(n, activation=activation) for n in net[1:]]
-                       + [Dense(1, activation=None)]), name=name)
+    return Sequential(([Dense(net[0], activation=activation, input_shape=(dim,), dtype='float32')]
+                       + [Dense(n, activation=activation, dtype='float32') for n in net[1:]]
+                       + [Dense(1, activation=None, dtype='float32')]), name=name)
