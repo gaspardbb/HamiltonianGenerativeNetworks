@@ -10,6 +10,8 @@ from tensorflow.keras.metrics import Mean
 from encoder import GenericEncoder, GaussianEncoder
 from hamiltonian import Hamiltonian
 
+from tqdm import tqdm
+
 
 class NHF:
 
@@ -29,6 +31,7 @@ class NHF:
         self.n_epochs = 0
         self.compiled = False
 
+        # Define the trainable variables of the model
         self.trainable_variables = []
         for h in self.hamiltonians:
             self.trainable_variables += h.trainable_variables
@@ -170,13 +173,19 @@ class NHF:
             # If there's 3 dims or more, there's obviously a problem.
             raise ValueError(f'Data should be 2 dim (batched 1 dim features). Got {sample.ndim}.'
                              f'Did you batched twice?')
+        if sample.dtype is not tf.float32:
+            raise ValueError(f'You need to pass float32 data. Got {sample.dtype}')
 
-        for epoch in range(n_epochs):
+        # Just for nice tqdm handling
+        n_batches = tf.data.experimental.cardinality(q_train).numpy()
+
+        for epoch in tqdm(range(n_epochs), desc="epoch"):
+            # TODO: add loss to the tqdm bar
             epoch_log_mean = Mean()
             epoch_prior_loss = Mean()
             epoch_elbo = Mean()
 
-            for batch in q_train:
+            for batch in tqdm(q_train, total=n_batches, desc="batch"):
                 # We're looking at a single batch.
                 # print(f"Doing new batch. Shape is: {batch.shape}")
 
@@ -191,6 +200,9 @@ class NHF:
                 epoch_log_mean(log_mean)
                 epoch_elbo(elbo)
 
+            self._log_mean.append(epoch_log_mean.result())
+            self._prior_loss.append(epoch_prior_loss.result())
+            self._elbo.append(epoch_elbo.result())
             self.n_epochs += 1
 
     def sample(self, mc_samples: int, sample_shape: Tuple = (), **kwargs) -> tf.Tensor:
@@ -246,6 +258,7 @@ class NHF:
         return tf.reduce_max(result, axis=0)
 
     def grid_evaluation(self, x_range, y_range, granularity: int, n_samples: int = 1):
+        """Perform a grid evaluation of a 2d distribution. Result is a 2d array."""
         assert self.dim == 2
         import numpy as np
 
@@ -281,7 +294,7 @@ if __name__ == '__main__':
     nhf_.set_optimizer()
 
     # TRAIN
-    nhf_.train(data, 1)
+    nhf_.train(data, 10)
 
     # SOME TEST
     print('Evaluating on zeros(4, 2) with 10 samples: \n %s'
