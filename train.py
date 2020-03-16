@@ -60,7 +60,7 @@ def plot_results(distribution: FlowExample, nhf: NHF, samples: tf.Tensor, granul
 
     axes[2].set_title("Losses")
     for k, v in nhf.history.items():
-        numpy_values = []))i.numpy() for i in v]
+        numpy_values = [i.numpy() for i in v]
         axes[2].plot(numpy_values, label=k)
     plt.legend()
 
