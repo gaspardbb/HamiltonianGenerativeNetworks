@@ -35,6 +35,8 @@ def train_gaussian(n_samples, n_epochs):
 
     plot_results(distribution, nhf, x_train)
 
+    return distribution, nhf, x_train
+
 
 def plot_results(distribution: FlowExample, nhf: NHF, samples: tf.Tensor, granularity=10):
     # Define the right scale
@@ -67,5 +69,6 @@ def plot_results(distribution: FlowExample, nhf: NHF, samples: tf.Tensor, granul
     plt.show()
     return axes
 
+
 if __name__ == '__main__':
-    train_gaussian(100, n_epochs=100)
+    distribution, nhf, samples = train_gaussian(100, n_epochs=5)
