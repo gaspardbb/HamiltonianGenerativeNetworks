@@ -17,7 +17,7 @@ Implementation of [1], and especially Neural Hamiltonian Flows.
 
 ## Todo
 
-* Training suffers from numerical instabilities.
+* **Training suffers from numerical instabilities**.
 * Study the influence of the complexity of the MLP.
 * Add new priors.
 * Provide sampling feature.
