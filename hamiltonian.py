@@ -208,4 +208,4 @@ def test_integration(method='leapfrog'):
 
 
 if __name__ == '__main__':
-    result = test_integration(method="leapfrog")
+    result = test_integration(method="euler")

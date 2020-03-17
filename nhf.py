@@ -10,13 +10,13 @@ from tensorflow.keras.metrics import Mean
 from encoder import GenericEncoder, GaussianEncoder
 from hamiltonian import Hamiltonian
 
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 
 
 class NHF:
 
     def __init__(self, hamiltonians: Iterable[Hamiltonian], encoder: GenericEncoder, prior: Distribution,
-                 n_steps: int = 20, eps: float = 1e-1, method="leapfrog"):
+                 n_steps: int = 2, eps: float = 1e-1, method="leapfrog"):
         for h in hamiltonians:
             assert encoder.dim == h.dim
 
