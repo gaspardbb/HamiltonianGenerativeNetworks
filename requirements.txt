@@ -30,5 +30,5 @@ tensorflow-probability==0.8.0rc0
 termcolor==1.1.0
 tornado==6.0.3
 tqdm==4.42.1
-Werkzeug==0.16.0
+Werkzeug==2.2.3
 wrapt==1.11.2
